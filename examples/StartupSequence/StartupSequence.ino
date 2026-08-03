@@ -29,7 +29,7 @@
 
 SpiritN20 Robot;
 
-const int IMPELLER_SPEED   = 30;   // start here, raise in steps of 5-10
+const int IMPELLER_SPEED   = 40;   // start here, raise in steps of 5-10
 const int ROBOT_SPEED      = 180;
 const int CALIBRATION_SPIN = 50;   // how fast it turns during setup
 

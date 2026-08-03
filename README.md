@@ -143,11 +143,11 @@ The impeller motor only spins **one way**, which is all a suction fan needs. Neg
 
 Going straight to full power throws a large current spike into the 8520 coreless motor and heats it immediately. So `setImpeller()` climbs to the target one step at a time, 10 ms a step, rather than jumping. **You do not have to ramp it yourself.**
 
-The climb starts from wherever the impeller already is, so nudging it from 30 up to 40 costs a tenth of a second rather than a full spin-up from zero.
+The climb starts from wherever the impeller already is, so nudging it from 40 up to 50 costs a tenth of a second rather than a full spin-up from zero.
 
 > **`setImpeller()` waits while it climbs.** Going from nothing to 100 takes about a second, and your sketch does nothing else meanwhile. Set the impeller before you start driving, not inside a fast loop. Coming back down is instant, since slowing carries no spike to protect against.
 
-Start at a target of **30** and raise it in steps of 5–10 across runs until you have the grip you want. N20 builds are light, around 120 g, and need less downforce than you might expect.
+Start at a target of **40** and raise it in steps of 5–10 across runs until you have the grip you want. N20 builds are light, around 120 g, and need less downforce than you might expect.
 
 ### Looking after the motor
 
@@ -394,7 +394,7 @@ void setup() {
   Robot.setBattery(3);
 
   sensors.begin(pins);
-  sensors.setPID(0.07, 0.0, 1.5);   // the gains the Spirit firmware ships with
+  sensors.setPID(0.03, 0.0, 0.8);   // a safe starting point
 
   Robot.waitFor(BTN1);            // press to calibrate
   Robot.ledOn(LED1);
@@ -406,7 +406,7 @@ void setup() {
   Robot.ledOff(LED1);
 
   Robot.waitFor(BTN2);            // press to run
-  Robot.setImpeller(30);          // impeller first - it climbs on its own
+  Robot.setImpeller(40);          // impeller first - it climbs on its own
   delay(1500);                    // let the vacuum build
   Robot.ledOn(LED2);
 }

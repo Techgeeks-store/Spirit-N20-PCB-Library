@@ -22,7 +22,7 @@
      Leave it out and the library assumes 3 cells, which is the safer guess
      but will feel weak on a 2 cell pack.
 
-  2. START LOW. 30 is a sensible first target. Raise it in steps of 5 to 10
+  2. START LOW. 40 is a sensible first target. Raise it in steps of 5 to 10
      across runs until you have the grip you want, checking temperature each
      time.
 
@@ -44,7 +44,7 @@
 
 SpiritN20 Robot;
 
-const int TARGET_SPEED = 30;   // start here. Raise in steps of 5-10.
+const int TARGET_SPEED = 40;   // start here. Raise in steps of 5-10.
 
 bool running = false;
 
