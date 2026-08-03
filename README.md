@@ -91,7 +91,7 @@ SpiritN20 Robot;
 void setup() {
   Serial.begin(9600);   // you call this yourself
   Robot.begin();        // sets up every pin and the impeller timer
-  Robot.setBattery(2);  // 2 or 3, to match your LiPo
+  Robot.setBattery(3);  // 2 or 3, to match your LiPo
 }
 
 void loop() {
@@ -139,18 +139,15 @@ Robot.setImpeller(0);    // off
 
 The impeller motor only spins **one way**, which is all a suction fan needs. Negative numbers are not a thing here; ask for one and you get a warning and zero.
 
-### Ramp up, never jump
+### It ramps itself
 
-This is the single most important habit. Going straight to full power throws a large current spike into the 8520 coreless motor and heats it immediately. Climb in steps instead:
+Going straight to full power throws a large current spike into the 8520 coreless motor and heats it immediately. So `setImpeller()` climbs to the target one step at a time, 10 ms a step, rather than jumping. **You do not have to ramp it yourself.**
 
-```cpp
-for (int s = 0; s <= 40; s += 5) {
-  Robot.setImpeller(s);
-  delay(100);
-}
-```
+The climb starts from wherever the impeller already is, so nudging it from 30 up to 40 costs a tenth of a second rather than a full spin-up from zero.
 
-Start at a target of **40** and raise it in steps of 5–10 across runs until you have the grip you want. N20 builds are light, around 120 g, and need less downforce than you might expect.
+> **`setImpeller()` waits while it climbs.** Going from nothing to 100 takes about a second, and your sketch does nothing else meanwhile. Set the impeller before you start driving, not inside a fast loop. Coming back down is instant, since slowing carries no spike to protect against.
+
+Start at a target of **30** and raise it in steps of 5–10 across runs until you have the grip you want. N20 builds are light, around 120 g, and need less downforce than you might expect.
 
 ### Looking after the motor
 
@@ -394,10 +391,10 @@ int values[8];
 void setup() {
   Serial.begin(9600);
   Robot.begin();
-  Robot.setBattery(2);
+  Robot.setBattery(3);
 
   sensors.begin(pins);
-  sensors.setPID(0.03, 0.0, 0.02);
+  sensors.setPID(0.07, 0.0, 1.5);   // the gains the Spirit firmware ships with
 
   Robot.waitFor(BTN1);            // press to calibrate
   Robot.ledOn(LED1);
@@ -409,10 +406,7 @@ void setup() {
   Robot.ledOff(LED1);
 
   Robot.waitFor(BTN2);            // press to run
-  for (int s = 0; s <= 40; s += 5) {   // impeller first
-    Robot.setImpeller(s);
-    delay(100);
-  }
+  Robot.setImpeller(30);          // impeller first - it climbs on its own
   delay(1500);                    // let the vacuum build
   Robot.ledOn(LED2);
 }
@@ -420,7 +414,7 @@ void setup() {
 void loop() {
   sensors.read(values);
   int correction = sensors.getCorrection();
-  Robot.drive(120 + correction, 120 - correction);
+  Robot.drive(230 - correction, 230 + correction);
 }
 ```
 
@@ -438,7 +432,7 @@ The sensor connector gives you **A0–A7**, which fits an [ARC8](https://github.
 - **The default battery setting is 3 cells**, the safer guess. Set it correctly for a 2 cell pack or your impeller will be weaker than it should be.
 - **`BTN1`, `BTN2`, `LED1`, `LED2` and the motor pin names are global.** If another library defines any of the same names, you will get a "redefined" warning.
 - **No memory tricks.** No `malloc`, no `new`, no `String`. Everything is fixed size, so it cannot fragment your RAM mid-race.
-- **No `delay()` inside the library.** The debounce uses `millis()`, and `waitFor()` spins on the pin.
+- **`setImpeller()` is the only thing that waits.** It holds your sketch while the impeller climbs, about 10 ms per step. Nothing else in the library blocks: the debounce uses `millis()`, and `waitFor()` spins on the pin by design.
 
 ### Memory use
 
@@ -448,8 +442,8 @@ Measured on an Arduino Nano, compiled with the real Arduino AVR core:
 |---|---|---|
 | MotorTest | 3,568 bytes (10.9%) | 354 bytes (17.3%) |
 | ButtonsAndLEDs | 3,770 bytes (11.5%) | 292 bytes (14.3%) |
-| StartupSequence | 4,616 bytes (14.1%) | 332 bytes (16.2%) |
-| ImpellerTest | 4,894 bytes (14.9%) | 375 bytes (18.3%) |
+| StartupSequence | 4,376 bytes (13.4%) | 332 bytes (16.2%) |
+| ImpellerTest | 4,422 bytes (13.5%) | 313 bytes (15.3%) |
 
 The library itself is about 1.7 KB of flash, leaving plenty for a sensor library and your own line following code.
 

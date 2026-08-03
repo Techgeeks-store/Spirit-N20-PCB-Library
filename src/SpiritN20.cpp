@@ -149,7 +149,27 @@ void SpiritN20::setImpeller(int speed) {
     speed = _cap;
   }
 
-  _applyImpeller(speed);
+  if (speed > _impeller) {
+    // Climb one step at a time instead of jumping. A sudden jump to full
+    // power throws a big current spike into the coreless motor and heats it
+    // straight away. Ten milliseconds a step is gentle enough.
+    //
+    // The climb starts from wherever the impeller already is, so nudging it
+    // from 30 up to 40 costs a tenth of a second, not a full spin-up from
+    // zero. On the first call it is at 0 anyway.
+    //
+    // Be aware this WAITS: going from nothing to 100 takes about a second,
+    // and your sketch does nothing else meanwhile. Set the impeller before
+    // you start driving, not inside a fast loop.
+    for (int i = _impeller; i <= speed; i++) {
+      _applyImpeller(i);
+      delay(10);
+    }
+  } else {
+    // Slowing down or stopping carries no current spike, so there is
+    // nothing to protect against and no reason to drag it out.
+    _applyImpeller(speed);
+  }
 }
 
 void SpiritN20::_applyImpeller(int speed) {
