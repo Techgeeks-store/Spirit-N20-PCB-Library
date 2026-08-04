@@ -19,6 +19,7 @@ Every pin is fixed in the PCB itself, so **`begin()` takes no arguments**.
 - [Battery setting and the speed cap](#battery-setting-and-the-speed-cap)
 - [Power: the X Pad and Y Pad](#power-the-x-pad-and-y-pad)
 - [Drive motors](#drive-motors)
+- [PID steering](#pid-steering)
 - [Buttons](#buttons)
 - [LEDs](#leds)
 - [Full function reference](#full-function-reference)
@@ -268,6 +269,48 @@ Both fixes are in the wiring. No code change needed.
 
 ---
 
+## PID steering
+
+The sensor array tells you *where the line is*. This library turns that into motor speeds.
+
+```cpp
+Robot.setPID(0.03, 0.0, 0.8);                       // kp, ki, kd
+int correction = Robot.getCorrection(sensors.getError());
+Robot.drive(BASE - correction, BASE + correction);
+```
+
+`getCorrection()` takes how far off the line you are and gives back one steering number. It adds up three parts:
+
+| Part | What it does |
+|---|---|
+| **P** — `kp` | How far off you are *right now*. This does most of the work. |
+| **I** — `ki` | How far off you have been, all added up. Leave at 0 unless the robot rides consistently to one side. |
+| **D** — `kd` | How fast the error is changing. This is what damps the wobble. |
+
+**A negative correction means the line went right**, because sensor 0 is at the right-hand end of the array and carries a negative weight. That is why the correction is *subtracted* from the left wheel.
+
+### Tuning, one number at a time
+
+1. **Start with `setPID(0.03, 0.0, 0.0)`** — only `kp`.
+2. **Raise `kp`** until it follows the line but wobbles. Too low and it drifts off corners; too high and it snakes.
+3. **Back `kp` off slightly**, until it follows with only a gentle wobble.
+4. **Add `kd`**, around `0.8` to start. `kd` is much bigger than `kp` because it works on the *change* in error, which is a far smaller number.
+5. **Leave `ki` at 0** unless the robot always rides to one side, and even then keep it tiny.
+
+| Symptom | Try |
+|---|---|
+| Drifts off on corners | Raise `kp` |
+| Snakes wildly side to side | Lower `kp`, or raise `kd` |
+| Wobbles gently but constantly | Raise `kd` |
+| Always rides slightly off to one side | A tiny `ki` |
+| Overshoots then swings back hard | Lower `ki`, or set it to 0 |
+
+Faster robots need lower `kp`. Raise your base speed and expect to retune.
+
+The PID never resets. The running total behind `ki` and the previous error both carry on for as long as the sketch runs.
+
+---
+
 ## Buttons
 
 ```cpp
@@ -323,6 +366,8 @@ Both start off after `begin()`. They are the fastest way to see what your robot 
 | `void setImpeller(int speed)` | Runs the impeller, 0 upward. Trimmed to the current ceiling. |
 | `void setImpellerMAX(int maxSpeed)` | Sets the ceiling yourself, 0–255. Overrides the battery ceiling. |
 | `void drive(int speedA, int speedB)` | Both motors, −255 to 255. 0 brakes. Out-of-range trimmed silently. |
+| `void setPID(float kp, float ki, float kd)` | Sets the three steering numbers. |
+| `int getCorrection(int error)` | Turns how far off the line you are into a steering number. |
 | `void stop()` | Brakes both drive motors. Impeller keeps running. |
 | `bool isPressed(int button, unsigned int debounceMs = 0)` | `true` while held. Pass `BTN1` or `BTN2`. |
 | `void waitFor(int button)` | Pauses the sketch until that button is pressed. |

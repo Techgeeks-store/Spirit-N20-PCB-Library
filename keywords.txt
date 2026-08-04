@@ -17,6 +17,8 @@ setBattery	KEYWORD2
 setImpeller	KEYWORD2
 setImpellerMAX	KEYWORD2
 drive	KEYWORD2
+setPID	KEYWORD2
+getCorrection	KEYWORD2
 stop	KEYWORD2
 isPressed	KEYWORD2
 waitFor	KEYWORD2

@@ -68,6 +68,12 @@ class SpiritN20 {
     // Pauses your sketch until the button is pressed. Pass BTN1 or BTN2.
     void waitFor(int button);
 
+    // Sets the three numbers that decide how hard the robot steers.
+    void setPID(float kp, float ki, float kd);
+
+    // Turns how far off the line you are into a steering number.
+    int getCorrection(int error);
+
     // Turns an LED on. Pass LED1 or LED2.
     void ledOn(int led);
 
@@ -85,6 +91,11 @@ class SpiritN20 {
     int  _impeller;          // the impeller speed actually being run
 
     bool _ledState[2];       // what we last told each LED to do
+
+    float _kp, _ki, _kd;     // the three PID steering numbers
+    int   _lastError;        // the error from the previous getCorrection()
+    long  _integral;         // every error so far, added up. A long, because
+                             // an int fills up after only a few loops
 
     // Only used when you ask isPressed() for a debounce.
     bool          _lastRaw[2];     // the reading we saw last time
