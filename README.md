@@ -55,7 +55,7 @@ The library refuses to compile on anything else rather than silently driving the
 
 ### Option 1 — Add .ZIP Library (recommended)
 
-1. Download **`SpiritN20.zip`** from the [Releases page](https://github.com/Techgeeks-store/Spirit-N20-PCB-Library/releases).
+1. Download **`SpiritN20.zip`**.
 2. In the Arduino IDE, go to **Sketch → Include Library → Add .ZIP Library…**
 3. Select the file you downloaded.
 
